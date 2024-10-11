@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { File, Folder, Home, Plus, Search, Settings, Upload } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 
 // Mock COS SDK for client-side usage
 const mockCOS = {
-  getBucket: (params, callback) => {
+  getBucket: (params: any, callback: (err: any, data: any) => void) => {
     // Simulate API call
     setTimeout(() => {
       callback(null, {
@@ -19,20 +17,20 @@ const mockCOS = {
       })
     }, 500)
   },
-  putObject: (params, callback) => {
+  putObject: (params: any, callback: (err: any, data: any) => void) => {
     // Simulate file upload
     setTimeout(() => {
       callback(null, { ETag: '"mockETag"' })
     }, 1000)
   },
-  getObjectUrl: (params, callback) => {
+  getObjectUrl: (params: any, callback: (err: any, data: any) => void) => {
     // Simulate getting object URL
     callback(null, { Url: `https://example.com/${params.Key}` })
   }
 }
 
 export default function CloudStorageDashboard() {
-  const [files, setFiles] = useState([])
+  const [files, setFiles] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPath, setCurrentPath] = useState('/')
 
@@ -42,8 +40,8 @@ export default function CloudStorageDashboard() {
 
   const fetchFiles = () => {
     mockCOS.getBucket({
-      Bucket: process.env.NEXT_PUBLIC_COS_BUCKET,
-      Region: process.env.NEXT_PUBLIC_COS_REGION,
+      Bucket: 'your-bucket-name',
+      Region: 'your-region',
       Prefix: currentPath,
       Delimiter: '/'
     }, (err, data) => {
@@ -51,13 +49,13 @@ export default function CloudStorageDashboard() {
         console.error('Error fetching files:', err)
       } else {
         const formattedFiles = [
-          ...data.CommonPrefixes.map(prefix => ({
+          ...data.CommonPrefixes.map((prefix: any) => ({
             name: prefix.Prefix.split('/').slice(-2)[0],
             type: 'folder',
             size: '-',
             lastModified: '-'
           })),
-          ...data.Contents.map(file => ({
+          ...data.Contents.map((file: any) => ({
             name: file.Key.split('/').pop(),
             type: 'file',
             size: formatFileSize(file.Size),
@@ -81,8 +79,8 @@ export default function CloudStorageDashboard() {
     const file = event.target.files?.[0]
     if (file) {
       mockCOS.putObject({
-        Bucket: process.env.NEXT_PUBLIC_COS_BUCKET,
-        Region: process.env.NEXT_PUBLIC_COS_REGION,
+        Bucket: 'your-bucket-name',
+        Region: 'your-region',
         Key: currentPath + file.name,
         Body: file
       }, (err, data) => {
@@ -100,8 +98,8 @@ export default function CloudStorageDashboard() {
     const folderName = prompt('Enter folder name:')
     if (folderName) {
       mockCOS.putObject({
-        Bucket: process.env.NEXT_PUBLIC_COS_BUCKET,
-        Region: process.env.NEXT_PUBLIC_COS_REGION,
+        Bucket: 'your-bucket-name',
+        Region: 'your-region',
         Key: currentPath + folderName + '/',
         Body: ''
       }, (err, data) => {
@@ -129,8 +127,8 @@ export default function CloudStorageDashboard() {
     } else {
       // For files, initiate download
       mockCOS.getObjectUrl({
-        Bucket: process.env.NEXT_PUBLIC_COS_BUCKET,
-        Region: process.env.NEXT_PUBLIC_COS_REGION,
+        Bucket: 'your-bucket-name',
+        Region: 'your-region',
         Key: currentPath + file.name,
         Sign: true
       }, (err, data) => {
@@ -170,26 +168,27 @@ export default function CloudStorageDashboard() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">My Files</h2>
           <div className="flex space-x-2">
-            <Button onClick={() => document.getElementById('fileInput')?.click()}>
-              <Upload className="w-4 h-4 mr-2" />
+            <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={() => document.getElementById('fileInput')?.click()}>
+              <Upload className="w-4 h-4 mr-2 inline" />
               Upload
-            </Button>
+            </button>
             <input
               id="fileInput"
               type="file"
               className="hidden"
               onChange={handleUpload}
             />
-            <Button onClick={handleCreateFolder}>
-              <Plus className="w-4 h-4 mr-2" />
+            <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleCreateFolder}>
+              <Plus className="w-4 h-4 mr-2 inline" />
               New Folder
-            </Button>
+            </button>
           </div>
         </div>
         <div className="mb-6">
-          <Input
+          <input
             type="text"
             placeholder="Search files..."
+            className="px-4 py-2 border rounded"
             value={searchTerm}
             onChange={handleSearch}
           />
@@ -219,9 +218,9 @@ export default function CloudStorageDashboard() {
                 <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">{file.size}</td>
                 <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">{file.lastModified}</td>
                 <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300 text-right">
-                  <Button variant="outline" onClick={() => handleFileAction(file)}>
+                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded" onClick={() => handleFileAction(file)}>
                     {file.type === 'folder' ? 'Open' : 'Download'}
-                  </Button>
+                  </button>
                 </td>
               </tr>
             ))}
