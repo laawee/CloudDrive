@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "cos-js-sdk-v5": "^1.4.20",
+    "cos-nodejs-sdk-v5": "^2.12.1",
     "lucide-react": "^0.263.1",
     "next": "13.5.4",
     "react": "^18",
