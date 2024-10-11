@@ -1,0 +1,27 @@
+const COS = require('cos-nodejs-sdk-v5')
+const multer = require('multer')
+const upload = multer({ storage: multer.memoryStorage() })
+
+const cos = new COS({
+  SecretId: process.env.COS_SECRET_ID,
+  SecretKey: process.env.COS_SECRET_KEY,
+})
+
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.')
+  }
+
+  cos.putObject({
+    Bucket: process.env.COS_BUCKET,
+    Region: process.env.COS_REGION,
+    Key: req.body.path + req.file.originalname,
+    Body: req.file.buffer,
+  }, (err, data) => {
+    if (err) {
+      console.error('Error uploading to COS:', err)
+      return res.status(500).send('Error uploading file to COS')
+    }
+    res.status(200).send('File uploaded successfully')
+  })
+})
