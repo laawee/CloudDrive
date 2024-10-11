@@ -1,37 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import COS from 'cos-nodejs-sdk-v5';
-import { File, Folder, Home, Plus, Search, Settings, Upload } from "lucide-react";
+'use client'
 
-let cos;
+import React, { useState, useEffect } from 'react'
+import { File, Folder, Home, Plus, Search, Settings, Upload } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+// Mock COS SDK for client-side usage
+const mockCOS = {
+  getBucket: (params, callback) => {
+    // Simulate API call
+    setTimeout(() => {
+      callback(null, {
+        CommonPrefixes: [{ Prefix: 'folder1/' }, { Prefix: 'folder2/' }],
+        Contents: [
+          { Key: 'file1.txt', Size: 1024, LastModified: new Date() },
+          { Key: 'file2.pdf', Size: 2048, LastModified: new Date() }
+        ]
+      })
+    }, 500)
+  },
+  putObject: (params, callback) => {
+    // Simulate file upload
+    setTimeout(() => {
+      callback(null, { ETag: '"mockETag"' })
+    }, 1000)
+  },
+  getObjectUrl: (params, callback) => {
+    // Simulate getting object URL
+    callback(null, { Url: `https://example.com/${params.Key}` })
+  }
+}
 
 export default function CloudStorageDashboard() {
-  const [files, setFiles] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPath, setCurrentPath] = useState('/');
+  const [files, setFiles] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [currentPath, setCurrentPath] = useState('/')
 
   useEffect(() => {
-    cos = new COS({
-      SecretId: process.env.NEXT_PUBLIC_COS_SECRET_ID,
-      SecretKey: process.env.NEXT_PUBLIC_COS_SECRET_KEY,
-    });
-    fetchFiles();
-  }, []);
-
-  useEffect(() => {
-    if (cos) {
-      fetchFiles();
-    }
-  }, [currentPath]);
+    fetchFiles()
+  }, [currentPath])
 
   const fetchFiles = () => {
-    cos.getBucket({
+    mockCOS.getBucket({
       Bucket: process.env.NEXT_PUBLIC_COS_BUCKET,
       Region: process.env.NEXT_PUBLIC_COS_REGION,
       Prefix: currentPath,
       Delimiter: '/'
     }, (err, data) => {
       if (err) {
-        console.error('Error fetching files:', err);
+        console.error('Error fetching files:', err)
       } else {
         const formattedFiles = [
           ...data.CommonPrefixes.map(prefix => ({
@@ -46,85 +63,85 @@ export default function CloudStorageDashboard() {
             size: formatFileSize(file.Size),
             lastModified: new Date(file.LastModified).toLocaleDateString()
           }))
-        ];
-        setFiles(formattedFiles);
+        ]
+        setFiles(formattedFiles)
       }
-    });
-  };
+    })
+  }
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
 
-  const handleUpload = (event) => {
-    const file = event.target.files[0];
+  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (file) {
-      cos.putObject({
+      mockCOS.putObject({
         Bucket: process.env.NEXT_PUBLIC_COS_BUCKET,
         Region: process.env.NEXT_PUBLIC_COS_REGION,
         Key: currentPath + file.name,
         Body: file
       }, (err, data) => {
         if (err) {
-          console.error('Error uploading file:', err);
+          console.error('Error uploading file:', err)
         } else {
-          console.log('File uploaded successfully');
-          fetchFiles();
+          console.log('File uploaded successfully')
+          fetchFiles()
         }
-      });
+      })
     }
-  };
+  }
 
   const handleCreateFolder = () => {
-    const folderName = prompt('Enter folder name:');
+    const folderName = prompt('Enter folder name:')
     if (folderName) {
-      cos.putObject({
+      mockCOS.putObject({
         Bucket: process.env.NEXT_PUBLIC_COS_BUCKET,
         Region: process.env.NEXT_PUBLIC_COS_REGION,
         Key: currentPath + folderName + '/',
         Body: ''
       }, (err, data) => {
         if (err) {
-          console.error('Error creating folder:', err);
+          console.error('Error creating folder:', err)
         } else {
-          console.log('Folder created successfully');
-          fetchFiles();
+          console.log('Folder created successfully')
+          fetchFiles()
         }
-      });
+      })
     }
-  };
+  }
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+  }
 
   const filteredFiles = files.filter(file =>
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  )
 
-  const handleFileAction = (file) => {
+  const handleFileAction = (file: { type: string; name: string }) => {
     if (file.type === 'folder') {
-      setCurrentPath(currentPath + file.name + '/');
+      setCurrentPath(currentPath + file.name + '/')
     } else {
       // For files, initiate download
-      cos.getObjectUrl({
+      mockCOS.getObjectUrl({
         Bucket: process.env.NEXT_PUBLIC_COS_BUCKET,
         Region: process.env.NEXT_PUBLIC_COS_REGION,
         Key: currentPath + file.name,
         Sign: true
       }, (err, data) => {
         if (err) {
-          console.error('Error getting file URL:', err);
+          console.error('Error getting file URL:', err)
         } else {
-          window.open(data.Url, '_blank');
+          window.open(data.Url, '_blank')
         }
-      });
+      })
     }
-  };
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -136,56 +153,54 @@ export default function CloudStorageDashboard() {
         <nav className="mt-6">
           <a href="#" className="flex items-center px-4 py-2 text-gray-700 bg-gray-100">
             <Home className="w-5 h-5 mr-2" />
-            我的文件
+            My Files
           </a>
           <a href="#" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100">
             <Folder className="w-5 h-5 mr-2" />
-            共享文件
+            Shared Files
           </a>
           <a href="#" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100">
             <Settings className="w-5 h-5 mr-2" />
-            设置
+            Settings
           </a>
         </nav>
       </aside>
       {/* Main Content */}
       <main className="flex-1 p-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800">我的文件</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">My Files</h2>
           <div className="flex space-x-2">
-            <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={() => document.getElementById('fileInput').click()}>
-              <Upload className="w-4 h-4 mr-2 inline" />
-              上传
-            </button>
+            <Button onClick={() => document.getElementById('fileInput')?.click()}>
+              <Upload className="w-4 h-4 mr-2" />
+              Upload
+            </Button>
             <input
               id="fileInput"
               type="file"
-              style={{ display: 'none' }}
+              className="hidden"
               onChange={handleUpload}
             />
-            <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleCreateFolder}>
-              <Plus className="w-4 h-4 mr-2 inline" />
-              新建文件夹
-            </button>
+            <Button onClick={handleCreateFolder}>
+              <Plus className="w-4 h-4 mr-2" />
+              New Folder
+            </Button>
           </div>
         </div>
         <div className="mb-6">
-          <input
+          <Input
             type="text"
-            placeholder="搜索文件..."
-            className="px-4 py-2 border rounded"
+            placeholder="Search files..."
             value={searchTerm}
             onChange={handleSearch}
           />
-          <Search className="w-4 h-4 inline ml-2" />
         </div>
         <table className="min-w-full bg-white">
           <thead>
             <tr>
-              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">名称</th>
-              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">大小</th>
-              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">修改日期</th>
-              <th className="px-6 py-3 border-b-2 border-gray-300 text-right text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">操作</th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Size</th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Modified</th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-right text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -204,9 +219,9 @@ export default function CloudStorageDashboard() {
                 <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">{file.size}</td>
                 <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">{file.lastModified}</td>
                 <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300 text-right">
-                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded" onClick={() => handleFileAction(file)}>
-                    {file.type === 'folder' ? '查看' : '下载'}
-                  </button>
+                  <Button variant="outline" onClick={() => handleFileAction(file)}>
+                    {file.type === 'folder' ? 'Open' : 'Download'}
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -214,5 +229,5 @@ export default function CloudStorageDashboard() {
         </table>
       </main>
     </div>
-  );
+  )
 }
