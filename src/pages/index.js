@@ -1,5 +1,5 @@
-import CloudStorageDashboard from '../components/CloudStorageDashboard';
+import CloudStorageDashboard from '../components/CloudStorageDashboard'
 
 export default function Home() {
-  return ;
+  return <CloudStorageDashboard />
 }
