@@ -123,84 +123,92 @@ export default function CloudStorageDashboard() {
   };
 
   return (
-    
+    <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      
-        
-          CloudDrive
-        
-        
-          
-            
+      <aside className="w-64 bg-white shadow-md">
+        <div className="p-4">
+          <h1 className="text-2xl font-bold text-primary">CloudDrive</h1>
+        </div>
+        <nav className="mt-6">
+          <a href="#" className="flex items-center px-4 py-2 text-gray-700 bg-gray-100">
+            <Home className="w-5 h-5 mr-2" />
             我的文件
-          
-          
-            
+          </a>
+          <a href="#" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100">
+            <Folder className="w-5 h-5 mr-2" />
             共享文件
-          
-          
-            
+          </a>
+          <a href="#" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100">
+            <Settings className="w-5 h-5 mr-2" />
             设置
-          
-        
-      
+          </a>
+        </nav>
+      </aside>
       {/* Main Content */}
-      
-        
-          我的文件
-          
+      <main className="flex-1 p-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">我的文件</h2>
+          <div className="flex space-x-2">
             <Button variant="outline" onClick={() => document.getElementById('fileInput').click()}>
-              
+              <Upload className="w-4 h-4 mr-2" />
               上传
-            
-            
-            
-              
+            </Button>
+            <input
+              id="fileInput"
+              type="file"
+              style={{ display: 'none' }}
+              onChange={handleUpload}
+            />
+            <Button onClick={handleCreateFolder}>
+              <Plus className="w-4 h-4 mr-2" />
               新建文件夹
-            
-          
-        
-        
-          }
+            </Button>
+          </div>
+        </div>
+        <div className="mb-6">
+          <Input
+            type="text"
+            placeholder="搜索文件..."
+            className="max-w-sm"
+            icon={<Search className="w-4 h-4" />}
             value={searchTerm}
             onChange={handleSearch}
           />
-        
-        
-          
-            
-              名称
-              大小
-              修改日期
-              操作
-            
-          
-          
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[300px]">名称</TableHead>
+              <TableHead>大小</TableHead>
+              <TableHead>修改日期</TableHead>
+              <TableHead className="text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {filteredFiles.map((file, index) => (
-              
-                
-                  
+              <TableRow key={index}>
+                <TableCell className="font-medium">
+                  <div className="flex items-center">
                     {file.type === 'folder' ? (
-                      
+                      <Folder className="w-5 h-5 mr-2 text-blue-500" />
                     ) : (
-                      
+                      <File className="w-5 h-5 mr-2 text-gray-500" />
                     )}
                     {file.name}
-                  
-                
-                {file.size}
-                {file.lastModified}
-                
+                  </div>
+                </TableCell>
+                <TableCell>{file.size}</TableCell>
+                <TableCell>{file.lastModified}</TableCell>
+                <TableCell className="text-right">
                   <Button variant="ghost" size="sm" onClick={() => handleFileAction(file)}>
                     {file.type === 'folder' ? '查看' : '下载'}
-                  
-                
-              
+                  </Button>
+                </TableCell>
+              </TableRow>
             ))}
-          
-        
-      
-    
+          </TableBody>
+        </Table>
+      </main>
+    </div>
   );
 }
-```
