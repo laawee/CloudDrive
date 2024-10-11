@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import COS from 'cos-js-sdk-v5';
+import COS from 'cos-nodejs-sdk-v5';
 import { File, Folder, Home, Plus, Search, Settings, Upload } from "lucide-react";
 
-const cos = new COS({
-  SecretId: process.env.NEXT_PUBLIC_COS_SECRET_ID,
-  SecretKey: process.env.NEXT_PUBLIC_COS_SECRET_KEY,
-});
+let cos;
 
 export default function CloudStorageDashboard() {
   const [files, setFiles] = useState([]);
@@ -13,7 +10,17 @@ export default function CloudStorageDashboard() {
   const [currentPath, setCurrentPath] = useState('/');
 
   useEffect(() => {
+    cos = new COS({
+      SecretId: process.env.NEXT_PUBLIC_COS_SECRET_ID,
+      SecretKey: process.env.NEXT_PUBLIC_COS_SECRET_KEY,
+    });
     fetchFiles();
+  }, []);
+
+  useEffect(() => {
+    if (cos) {
+      fetchFiles();
+    }
   }, [currentPath]);
 
   const fetchFiles = () => {
