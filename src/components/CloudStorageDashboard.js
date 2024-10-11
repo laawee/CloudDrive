@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import COS from 'cos-js-sdk-v5';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { File, Folder, Home, Plus, Search, Settings, Upload } from "lucide-react";
 
 const cos = new COS({
@@ -149,45 +146,45 @@ export default function CloudStorageDashboard() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">我的文件</h2>
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => document.getElementById('fileInput').click()}>
-              <Upload className="w-4 h-4 mr-2" />
+            <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={() => document.getElementById('fileInput').click()}>
+              <Upload className="w-4 h-4 mr-2 inline" />
               上传
-            </Button>
+            </button>
             <input
               id="fileInput"
               type="file"
               style={{ display: 'none' }}
               onChange={handleUpload}
             />
-            <Button onClick={handleCreateFolder}>
-              <Plus className="w-4 h-4 mr-2" />
+            <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleCreateFolder}>
+              <Plus className="w-4 h-4 mr-2 inline" />
               新建文件夹
-            </Button>
+            </button>
           </div>
         </div>
         <div className="mb-6">
-          <Input
+          <input
             type="text"
             placeholder="搜索文件..."
-            className="max-w-sm"
-            icon={<Search className="w-4 h-4" />}
+            className="px-4 py-2 border rounded"
             value={searchTerm}
             onChange={handleSearch}
           />
+          <Search className="w-4 h-4 inline ml-2" />
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[300px]">名称</TableHead>
-              <TableHead>大小</TableHead>
-              <TableHead>修改日期</TableHead>
-              <TableHead className="text-right">操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <table className="min-w-full bg-white">
+          <thead>
+            <tr>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">名称</th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">大小</th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">修改日期</th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-right text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">操作</th>
+            </tr>
+          </thead>
+          <tbody>
             {filteredFiles.map((file, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">
+              <tr key={index}>
+                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">
                   <div className="flex items-center">
                     {file.type === 'folder' ? (
                       <Folder className="w-5 h-5 mr-2 text-blue-500" />
@@ -196,18 +193,18 @@ export default function CloudStorageDashboard() {
                     )}
                     {file.name}
                   </div>
-                </TableCell>
-                <TableCell>{file.size}</TableCell>
-                <TableCell>{file.lastModified}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleFileAction(file)}>
+                </td>
+                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">{file.size}</td>
+                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">{file.lastModified}</td>
+                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300 text-right">
+                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded" onClick={() => handleFileAction(file)}>
                     {file.type === 'folder' ? '查看' : '下载'}
-                  </Button>
-                </TableCell>
-              </TableRow>
+                  </button>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </main>
     </div>
   );
